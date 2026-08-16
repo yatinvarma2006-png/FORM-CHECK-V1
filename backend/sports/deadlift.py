@@ -54,7 +54,7 @@ def analyze_deadlift(
     idx = side_indices(side)
     results: list[dict] = []
 
-    # ── 1. Hip-Shoulder Rise Ratio (Torso Hinge Stability) ────────────────
+    # ── 1. Hip-Shoulder Rise Ratio (Vertical Joint Displacement Rate) ────────
     if landmarks_early_pull:
         p_hip_setup = lm_to_point(landmarks_setup[idx["hip"]])
         p_sh_setup = lm_to_point(landmarks_setup[idx["shoulder"]])
@@ -62,22 +62,24 @@ def analyze_deadlift(
         p_hip_early = lm_to_point(landmarks_early_pull[idx["hip"]])
         p_sh_early = lm_to_point(landmarks_early_pull[idx["shoulder"]])
 
-        # Calculate torso angle relative to horizontal at setup and early pull
-        # dy = hip.y - shoulder.y (inverted Y so UP is positive)
-        dy_setup = max(0.001, p_hip_setup.y - p_sh_setup.y)
-        dx_setup = abs(p_sh_setup.x - p_hip_setup.x)
-        angle_setup = math.degrees(math.atan2(dy_setup, max(0.001, dx_setup)))
+        # In normalized MediaPipe Y coords (0 at top, 1 at bottom):
+        # Moving UP means Y decreases, so setup.y - early.y > 0 is upward displacement
+        hip_rise = p_hip_setup.y - p_hip_early.y
+        shoulder_rise = p_sh_setup.y - p_sh_early.y
 
-        dy_early = max(0.001, p_hip_early.y - p_sh_early.y)
-        dx_early = abs(p_sh_early.x - p_hip_early.x)
-        angle_early = math.degrees(math.atan2(dy_early, max(0.001, dx_early)))
+        # If movement is negligible (less than 0.005 normalized coords), they moved in sync
+        if abs(hip_rise) < 0.005 and abs(shoulder_rise) < 0.005:
+            ratio = 1.00
+        elif shoulder_rise <= 0.002:
+            # Hips rose while shoulders stayed stationary or dropped -> hips shot up early!
+            ratio = 2.50
+        else:
+            ratio = hip_rise / shoulder_rise
 
-        # Ratio of early pull torso angle to setup torso angle
-        # Good form: chest & hips rise together (0.80 - 1.35)
-        # Hips shoot up early (< 0.80) or back hyperextends (> 1.35)
-        ratio = angle_early / max(0.1, angle_setup)
+        # Clamp extreme calculation artifacts to range [0.10, 3.00]
+        ratio = max(0.10, min(3.00, ratio))
 
-        lo, hi = thresholds.get("hip_shoulder_rise_ratio", (0.80, 1.35))
+        lo, hi = thresholds.get("hip_shoulder_rise_ratio", (0.50, 1.40))
         flagged = ratio < lo or ratio > hi
         metric = {
             "metric_name": "hip_shoulder_rise_ratio",

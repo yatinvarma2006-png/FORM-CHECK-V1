@@ -14,8 +14,8 @@ THRESHOLDS = [
     ("bowling", "elbow_extension", 0, 15, "degrees"),
     ("bowling", "front_knee_angle", 155, 180, "degrees"),
     ("bowling", "shoulder_hip_separation", 20, 45, "degrees"),
-    # Deadlift — Gold-standard powerlifting & biomechanical ranges
-    ("deadlift", "hip_shoulder_rise_ratio", 0.80, 1.35, "ratio"),
+    # Deadlift — Gold-standard displacement & lockout ranges
+    ("deadlift", "hip_shoulder_rise_ratio", 0.50, 1.40, "ratio"),
     ("deadlift", "hip_lockout_angle", 160, 180, "degrees"),
     ("deadlift", "knee_lockout_angle", 165, 180, "degrees"),
 ]
