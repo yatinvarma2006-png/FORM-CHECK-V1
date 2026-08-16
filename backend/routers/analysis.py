@@ -135,16 +135,9 @@ async def analyze(
         anthropometrics=anthropometrics,
     )
 
-    # ── AI Ground Truth Consensus Alignment ───────────────────────────────
-    # If Gemini Vision explicitly confirms good form, suppress noisy 2D landmark false flags!
-    if ai_vision.get("is_form_correct") is True:
-        for m in metrics:
-            m["flagged"] = False
-            m.pop("fault_name", None)
-            m.pop("injury_note", None)
-            m.pop("fix_tip", None)
-    elif ai_vision.get("is_form_correct") is False and ai_vision.get("primary_fault"):
-        # If Gemini Vision detected a primary fault, attach vision fault observation
+    # ── AI Vision Ground Truth Alignment ─────────────────────────────────
+    # If Gemini Vision explicitly detected a primary fault, attach vision fault
+    if ai_vision.get("is_form_correct") is False and ai_vision.get("primary_fault"):
         fault_title = ai_vision["primary_fault"]
         for m in metrics:
             if not any(x["flagged"] for x in metrics):
@@ -154,7 +147,7 @@ async def analyze(
                 m["fix_tip"] = "Focus on the AI movement cues to correct posture alignment."
                 break
 
-    # Build final flags list after AI Vision consensus alignment
+    # Build final flags list from strict landmark evaluation + AI Vision
     flags = [m for m in metrics if m["flagged"]]
 
     # Generate AI Coaching & Kinematic Insights
@@ -234,14 +227,9 @@ async def auto_scan(
     vision = analyze_form_with_ai_vision(sport, res.get("detected_frames", []), anthro)
 
     # ── AI Ground Truth Consensus Alignment ───────────────────────────────
+    # ── AI Vision Ground Truth Alignment ─────────────────────────────────
     metrics = res.get("metrics", [])
-    if vision.get("is_form_correct") is True:
-        for m in metrics:
-            m["flagged"] = False
-            m.pop("fault_name", None)
-            m.pop("injury_note", None)
-            m.pop("fix_tip", None)
-    elif vision.get("is_form_correct") is False and vision.get("primary_fault"):
+    if vision.get("is_form_correct") is False and vision.get("primary_fault"):
         fault_title = vision["primary_fault"]
         for m in metrics:
             if not any(x["flagged"] for x in metrics):

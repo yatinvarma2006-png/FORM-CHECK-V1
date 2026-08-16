@@ -59,8 +59,19 @@ export default function SkeletonOverlay({ frame, metrics, title }: Props) {
 
   useEffect(() => {
     computeRect();
+    const container = containerRef.current;
+    let observer: ResizeObserver | null = null;
+
+    if (container && typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(() => computeRect());
+      observer.observe(container);
+    }
+
     window.addEventListener("resize", computeRect);
-    return () => window.removeEventListener("resize", computeRect);
+    return () => {
+      window.removeEventListener("resize", computeRect);
+      if (observer && container) observer.unobserve(container);
+    };
   }, [frame.frameBase64]);
 
   if (!frame.landmarks) return null;
