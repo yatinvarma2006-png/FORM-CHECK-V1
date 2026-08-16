@@ -114,30 +114,25 @@ def get_v2_universal_thresholds(
     tf_ratio = human_profile.get("torso_femur_ratio", 1.0)
 
     if sport.lower() == "deadlift":
-        # 1. Heavy / Endomorph Build Adaptation
+        # Subtle 3-5 degree / 0.05 ratio adjustments for human body build
         if "Endomorph" in somatotype or "Heavy" in somatotype:
-            # Heavy lifters set up with wider stance & slightly lower hip angle for belly clearance
-            # Hip lockout tolerance: 130° - 180°
-            h_lo, h_hi = adapted.get("hip_lockout_angle", (140, 180))
-            adapted["hip_lockout_angle"] = (max(130.0, h_lo - 10.0), h_hi)
+            # Heavy lifters set up with slightly wider stance
+            h_lo, h_hi = adapted.get("hip_lockout_angle", (160, 180))
+            adapted["hip_lockout_angle"] = (max(155.0, h_lo - 5.0), h_hi)
 
-            # Knee lockout tolerance: 135° - 180°
-            k_lo, k_hi = adapted.get("knee_lockout_angle", (145, 180))
-            adapted["knee_lockout_angle"] = (max(135.0, k_lo - 10.0), k_hi)
+            k_lo, k_hi = adapted.get("knee_lockout_angle", (165, 180))
+            adapted["knee_lockout_angle"] = (max(160.0, k_lo - 5.0), k_hi)
 
-            # Rise sync ratio: 0.55 - 3.00
-            adapted["hip_shoulder_rise_ratio"] = (0.55, 3.00)
+            adapted["hip_shoulder_rise_ratio"] = (0.75, 1.40)
 
-        # 2. Long Femurs / Tall Lifter Adaptation
         elif tf_ratio < 0.85:
-            # Long femurs mean hips sit higher naturally at setup
-            h_lo, h_hi = adapted.get("hip_lockout_angle", (140, 180))
-            adapted["hip_lockout_angle"] = (max(135.0, h_lo - 5.0), h_hi)
-            adapted["hip_shoulder_rise_ratio"] = (0.60, 3.00)
+            # Long femurs mean hips sit slightly higher naturally at setup
+            h_lo, h_hi = adapted.get("hip_lockout_angle", (160, 180))
+            adapted["hip_lockout_angle"] = (max(156.0, h_lo - 4.0), h_hi)
+            adapted["hip_shoulder_rise_ratio"] = (0.78, 1.40)
 
-        # 3. Short Femurs / Compact Lifter Adaptation
         elif tf_ratio > 1.15:
-            adapted["hip_shoulder_rise_ratio"] = (0.65, 3.00)
+            adapted["hip_shoulder_rise_ratio"] = (0.82, 1.35)
 
     elif sport.lower() == "bowling":
         if "Endomorph" in somatotype:

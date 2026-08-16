@@ -73,12 +73,12 @@ def analyze_deadlift(
         angle_early = math.degrees(math.atan2(dy_early, max(0.001, dx_early)))
 
         # Ratio of early pull torso angle to setup torso angle
-        # Good form: chest & hips rise together or chest opens (ratio >= 0.65)
-        # Hips shoot up early (torso flattens toward floor): ratio drops < 0.65
+        # Good form: chest & hips rise together (0.80 - 1.35)
+        # Hips shoot up early (< 0.80) or back hyperextends (> 1.35)
         ratio = angle_early / max(0.1, angle_setup)
 
-        lo, hi = thresholds.get("hip_shoulder_rise_ratio", (0.65, 3.00))
-        flagged = ratio < lo
+        lo, hi = thresholds.get("hip_shoulder_rise_ratio", (0.80, 1.35))
+        flagged = ratio < lo or ratio > hi
         metric = {
             "metric_name": "hip_shoulder_rise_ratio",
             "display_name": "Hip-Shoulder Rise Sync",
@@ -100,7 +100,7 @@ def analyze_deadlift(
         lm_to_point(landmarks_lockout[idx["knee"]]),
     )
 
-    lo, hi = thresholds.get("hip_lockout_angle", (140, 180))
+    lo, hi = thresholds.get("hip_lockout_angle", (160, 180))
     flagged = hip_lockout < lo or hip_lockout > hi
     metric = {
         "metric_name": "hip_lockout_angle",
@@ -123,7 +123,7 @@ def analyze_deadlift(
         lm_to_point(landmarks_lockout[idx["ankle"]]),
     )
 
-    lo, hi = thresholds.get("knee_lockout_angle", (145, 180))
+    lo, hi = thresholds.get("knee_lockout_angle", (165, 180))
     flagged = knee_lockout < lo or knee_lockout > hi
     metric = {
         "metric_name": "knee_lockout_angle",
