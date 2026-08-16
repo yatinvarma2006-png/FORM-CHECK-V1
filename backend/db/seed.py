@@ -10,14 +10,14 @@ from models.schema import ReferenceThreshold, FaultRule
 
 
 THRESHOLDS = [
-    # Bowling
-    ("bowling", "elbow_extension", 0, 15, "degrees"),
-    ("bowling", "front_knee_angle", 155, 180, "degrees"),
-    ("bowling", "shoulder_hip_separation", 20, 45, "degrees"),
-    # Deadlift — widened to account for ~5-10° MediaPipe measurement noise
-    ("deadlift", "hip_shoulder_rise_ratio", 0.6, 1.4, "ratio"),
-    ("deadlift", "hip_lockout_angle", 160, 180, "degrees"),
-    ("deadlift", "knee_lockout_angle", 165, 180, "degrees"),
+    # Bowling — account for 2D camera perspective & arm action tolerance
+    ("bowling", "elbow_extension", 0, 25, "degrees"),
+    ("bowling", "front_knee_angle", 135, 180, "degrees"),
+    ("bowling", "shoulder_hip_separation", 15, 50, "degrees"),
+    # Deadlift — angle-based torso sync (0.50 - 1.60) & 2D perspective lockout thresholds
+    ("deadlift", "hip_shoulder_rise_ratio", 0.50, 1.60, "ratio"),
+    ("deadlift", "hip_lockout_angle", 140, 180, "degrees"),
+    ("deadlift", "knee_lockout_angle", 145, 180, "degrees"),
 ]
 
 FAULT_RULES = [
