@@ -52,6 +52,25 @@ export interface AICoachingReport {
   }>;
 }
 
+export interface Anthropometrics {
+  torso_length: number;
+  femur_length: number;
+  tibia_length: number;
+  arm_length: number;
+  torso_femur_ratio: number;
+  arm_torso_ratio: number;
+  lever_type: string;
+  note: string;
+}
+
+export interface AIVisionAnalysis {
+  ai_vision_active: boolean;
+  spine_alignment: string;
+  bar_path_quality: string;
+  vision_observations: string[];
+  summary: string;
+}
+
 export interface AnalysisResult {
   submission_id: number;
   sport: Sport;
@@ -59,6 +78,8 @@ export interface AnalysisResult {
   total_metrics: number;
   total_flags: number;
   ai_report?: AICoachingReport;
+  anthropometrics?: Anthropometrics;
+  ai_vision?: AIVisionAnalysis;
 }
 
 export interface SubmissionHistory {

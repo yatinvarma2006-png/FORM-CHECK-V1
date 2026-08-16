@@ -76,6 +76,16 @@ async def analyze(
     rules = _load_rules(db, sport)
     frame_map = _frames_by_role(req.frames)
 
+    # ── Anthropometric Normalization & Human Calibration ──────────────────
+    from sports.anthropometrics import calculate_anthropometrics, adapt_thresholds_for_human
+    from sports.ai_vision import analyze_form_with_ai_vision
+
+    ref_lms = list(frame_map.values())[0] if frame_map else []
+    anthropometrics = calculate_anthropometrics(ref_lms) if ref_lms else {}
+
+    # Adapt thresholds dynamically for this human subject's body structure
+    human_thresholds = adapt_thresholds_for_human(sport, thresholds, anthropometrics)
+
     if sport == "bowling":
         if "arm_horizontal" not in frame_map or "release" not in frame_map:
             raise HTTPException(
@@ -90,7 +100,7 @@ async def analyze(
             landmarks_release=frame_map["release"],
             arm_side=arm_side,
             leg_side=leg_side,
-            thresholds=thresholds,
+            thresholds=human_thresholds,
             rules=rules,
         )
     else:  # deadlift
@@ -103,7 +113,7 @@ async def analyze(
             landmarks_setup=frame_map["setup"],
             landmarks_early_pull=frame_map.get("early_pull"),
             landmarks_lockout=frame_map["lockout"],
-            thresholds=thresholds,
+            thresholds=human_thresholds,
             rules=rules,
         )
 
@@ -113,6 +123,13 @@ async def analyze(
     # Generate AI Coaching & Kinematic Insights
     from sports.ai_coach import generate_ai_coaching_report
     ai_report = generate_ai_coaching_report(sport=sport, metrics=metrics, total_flags=len(flags))
+
+    # Perform Multimodal AI Vision Inspection
+    ai_vision = analyze_form_with_ai_vision(
+        sport=sport,
+        frames=[{"role": k, "frame_base64": "", "annotated_base64": ""} for k in frame_map.keys()],
+        anthropometrics=anthropometrics,
+    )
 
     # Store submission
     submission = Submission(
@@ -132,6 +149,8 @@ async def analyze(
         "total_metrics": len(metrics),
         "total_flags": len(flags),
         "ai_report": ai_report,
+        "anthropometrics": anthropometrics,
+        "ai_vision": ai_vision,
     }
 
 
@@ -174,6 +193,17 @@ async def auto_scan(
     flags = [m for m in res["metrics"] if m["flagged"]]
     ai_report = generate_ai_coaching_report(sport=sport, metrics=res["metrics"], total_flags=len(flags))
     res["ai_report"] = ai_report
+
+    # Anthropometrics & AI Vision
+    from sports.anthropometrics import calculate_anthropometrics
+    from sports.ai_vision import analyze_form_with_ai_vision
+
+    ref_lms = res["detected_frames"][0]["landmarks"] if res.get("detected_frames") else []
+    anthro = calculate_anthropometrics(ref_lms) if ref_lms else {}
+    vision = analyze_form_with_ai_vision(sport, res.get("detected_frames", []), anthro)
+
+    res["anthropometrics"] = anthro
+    res["ai_vision"] = vision
 
     # Store submission in history
     submission = Submission(

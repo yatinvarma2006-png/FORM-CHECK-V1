@@ -9,7 +9,7 @@ import ResultsPanel from "./components/ResultsPanel";
 import HistoryPanel from "./components/HistoryPanel";
 
 import { api } from "./api/client";
-import type { Sport, VideoMeta, CapturedFrame, MetricResult, FrameRole, AICoachingReport } from "./types";
+import type { Sport, VideoMeta, CapturedFrame, MetricResult, FrameRole, AICoachingReport, Anthropometrics, AIVisionAnalysis } from "./types";
 import { FRAME_ROLES } from "./types";
 
 export default function App() {
@@ -26,6 +26,8 @@ export default function App() {
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [metricsResult, setMetricsResult] = useState<MetricResult[] | null>(null);
   const [aiReport, setAiReport] = useState<AICoachingReport | null>(null);
+  const [anthropometrics, setAnthropometrics] = useState<Anthropometrics | null>(null);
+  const [aiVision, setAiVision] = useState<AIVisionAnalysis | null>(null);
 
   // Active view tab (Analyzer vs History)
   const [activeTab, setActiveTab] = useState<"analyzer" | "history">("analyzer");
@@ -36,6 +38,8 @@ export default function App() {
     setCapturedFrames({});
     setMetricsResult(null);
     setAiReport(null);
+    setAnthropometrics(null);
+    setAiVision(null);
     setAnalysisError(null);
   };
 
@@ -72,6 +76,8 @@ export default function App() {
 
       setMetricsResult(res.metrics as MetricResult[]);
       if (res.ai_report) setAiReport(res.ai_report as AICoachingReport);
+      if (res.anthropometrics) setAnthropometrics(res.anthropometrics as Anthropometrics);
+      if (res.ai_vision) setAiVision(res.ai_vision as AIVisionAnalysis);
     } catch (err: any) {
       setAnalysisError(err.message || "Analysis failed");
     } finally {
@@ -105,6 +111,8 @@ export default function App() {
       setCapturedFrames(newCaptured);
       setMetricsResult(res.metrics as MetricResult[]);
       if (res.ai_report) setAiReport(res.ai_report as AICoachingReport);
+      if (res.anthropometrics) setAnthropometrics(res.anthropometrics as Anthropometrics);
+      if (res.ai_vision) setAiVision(res.ai_vision as AIVisionAnalysis);
     } catch (err: any) {
       setAnalysisError(err.message || "Auto-scan failed");
     } finally {
@@ -348,7 +356,13 @@ export default function App() {
                 </div>
 
                 {/* Results Panel */}
-                <ResultsPanel metrics={metricsResult} sport={sport} aiReport={aiReport || undefined} />
+                <ResultsPanel
+                  metrics={metricsResult}
+                  sport={sport}
+                  aiReport={aiReport || undefined}
+                  anthropometrics={anthropometrics || undefined}
+                  aiVision={aiVision || undefined}
+                />
               </div>
             )}
           </div>

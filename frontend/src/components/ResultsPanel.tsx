@@ -2,23 +2,33 @@
  * ResultsPanel — displays each metric with value, range, status,
  * and for flagged ones: fault name, injury note, fix tip.
  */
-import type { MetricResult, AICoachingReport } from "../types";
+import type { MetricResult, AICoachingReport, Anthropometrics, AIVisionAnalysis } from "../types";
 import AICoachingCard from "./AICoachingCard";
 
 interface Props {
   metrics: MetricResult[];
   sport: string;
   aiReport?: AICoachingReport;
+  anthropometrics?: Anthropometrics;
+  aiVision?: AIVisionAnalysis;
 }
 
-export default function ResultsPanel({ metrics, sport, aiReport }: Props) {
+export default function ResultsPanel({ metrics, sport, aiReport, anthropometrics, aiVision }: Props) {
   const flagged = metrics.filter((m) => m.flagged);
   const passed = metrics.filter((m) => !m.flagged);
 
   return (
     <div className="animate-slide-up space-y-6">
       {/* AI Coaching Card */}
-      {aiReport && <AICoachingCard report={aiReport} sport={sport} metrics={metrics} />}
+      {aiReport && (
+        <AICoachingCard
+          report={aiReport}
+          sport={sport}
+          metrics={metrics}
+          anthropometrics={anthropometrics}
+          aiVision={aiVision}
+        />
+      )}
       <div className="text-center">
         <h2 className="text-2xl font-bold text-white mb-2">Analysis Results</h2>
         <p className="text-gray-400 text-sm">

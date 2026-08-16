@@ -9,7 +9,8 @@
  *   • Built-in AI Chat Assistant to ask follow-up questions
  */
 import { useState, useEffect, useRef } from "react";
-import type { AICoachingReport } from "../types";
+import { api } from "../api/client";
+import type { AICoachingReport, MetricResult, Anthropometrics, AIVisionAnalysis } from "../types";
 
 /* ─── Radial Gauge ──────────────────────────────────── */
 function RadialGauge({ score }: { score: number }) {
@@ -92,8 +93,6 @@ function RiskBadge({ level, color }: { level: string; color: string }) {
 }
 
 /* ─── AI Chat Assistant (powered by Gemini) ──────────── */
-import { api } from "../api/client";
-import type { MetricResult } from "../types";
 
 interface ChatMessage {
   role: "user" | "ai";
@@ -257,13 +256,16 @@ function AIChatAssistant({ report, sport, metrics }: AIChatProps) {
 }
 
 /* ─── Main Component ────────────────────────────────── */
+
 interface Props {
   report: AICoachingReport;
   sport?: string;
   metrics?: MetricResult[];
+  anthropometrics?: Anthropometrics;
+  aiVision?: AIVisionAnalysis;
 }
 
-export default function AICoachingCard({ report, sport, metrics }: Props) {
+export default function AICoachingCard({ report, sport, metrics, anthropometrics, aiVision }: Props) {
   return (
     <div className="glass-card p-6 border-purple-500/30 bg-gradient-to-br from-purple-950/30 via-brand-950/20 to-surface-900/40 space-y-6 animate-fade-in">
       {/* Header */}
@@ -314,7 +316,61 @@ export default function AICoachingCard({ report, sport, metrics }: Props) {
         </div>
       </div>
 
-      {/* Biomechanical Breakdown */}
+      {/* Anthropometrics & Human Adaptability Badge */}
+      {anthropometrics && (
+        <div className="p-4 rounded-xl bg-gradient-to-r from-blue-950/40 to-purple-950/40 border border-blue-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-300 flex items-center justify-center text-lg font-bold border border-blue-500/30">
+              👤
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-white uppercase tracking-wider">
+                  Human Leverage Profile: {anthropometrics.lever_type}
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono">
+                  Ratio {anthropometrics.torso_femur_ratio}
+                </span>
+              </div>
+              <p className="text-xs text-gray-400 mt-0.5">{anthropometrics.note}</p>
+            </div>
+          </div>
+          <span className="text-[10px] px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold uppercase tracking-wider whitespace-nowrap">
+            ✓ Personalized Baseline Active
+          </span>
+        </div>
+      )}
+
+      {/* Multimodal AI Vision Form Inspection */}
+      {aiVision && (
+        <div className="space-y-3">
+          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+            <span>👁️</span> Multimodal AI Vision Inspection
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="glass-card p-4 border-purple-500/30 bg-purple-500/5">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-purple-400">
+                Spine Neutrality & Curve
+              </span>
+              <h5 className="text-sm font-bold text-white mt-1 mb-1">{aiVision.spine_alignment}</h5>
+              <p className="text-xs text-gray-400 leading-relaxed">{aiVision.summary}</p>
+            </div>
+            <div className="glass-card p-4 border-brand-500/30 bg-brand-500/5">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-400">
+                Bar / Center of Mass Path
+              </span>
+              <h5 className="text-sm font-bold text-white mt-1 mb-1">{aiVision.bar_path_quality}</h5>
+              <ul className="text-xs text-gray-400 space-y-1 mt-1">
+                {aiVision.vision_observations.map((obs, i) => (
+                  <li key={i} className="flex items-center gap-1.5">
+                    <span className="text-brand-400 font-bold">•</span> {obs}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
       {report.insights.length > 0 && (
         <div className="space-y-3">
           <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
