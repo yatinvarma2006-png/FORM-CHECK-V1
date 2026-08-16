@@ -120,19 +120,46 @@ async def analyze(
             rules=rules,
         )
 
-    # Build summary
+    # Perform Multimodal AI Vision Inspection using keyframe images
+    vision_frames = [
+        {
+            "role": f.role,
+            "frame_base64": getattr(f, "frame_base64", ""),
+            "annotated_base64": getattr(f, "annotated_base64", ""),
+        }
+        for f in req.frames
+    ]
+    ai_vision = analyze_form_with_ai_vision(
+        sport=sport,
+        frames=vision_frames,
+        anthropometrics=anthropometrics,
+    )
+
+    # ── AI Ground Truth Consensus Alignment ───────────────────────────────
+    # If Gemini Vision explicitly confirms good form, suppress noisy 2D landmark false flags!
+    if ai_vision.get("is_form_correct") is True:
+        for m in metrics:
+            m["flagged"] = False
+            m.pop("fault_name", None)
+            m.pop("injury_note", None)
+            m.pop("fix_tip", None)
+    elif ai_vision.get("is_form_correct") is False and ai_vision.get("primary_fault"):
+        # If Gemini Vision detected a primary fault, attach vision fault observation
+        fault_title = ai_vision["primary_fault"]
+        for m in metrics:
+            if not any(x["flagged"] for x in metrics):
+                m["flagged"] = True
+                m["fault_name"] = fault_title
+                m["injury_note"] = ai_vision.get("summary", "Form fault identified by AI Vision inspection.")
+                m["fix_tip"] = "Focus on the AI movement cues to correct posture alignment."
+                break
+
+    # Build final flags list after AI Vision consensus alignment
     flags = [m for m in metrics if m["flagged"]]
 
     # Generate AI Coaching & Kinematic Insights
     from sports.ai_coach import generate_ai_coaching_report
     ai_report = generate_ai_coaching_report(sport=sport, metrics=metrics, total_flags=len(flags))
-
-    # Perform Multimodal AI Vision Inspection
-    ai_vision = analyze_form_with_ai_vision(
-        sport=sport,
-        frames=[{"role": k, "frame_base64": "", "annotated_base64": ""} for k in frame_map.keys()],
-        anthropometrics=anthropometrics,
-    )
 
     # Store submission
     submission = Submission(
@@ -194,10 +221,6 @@ async def auto_scan(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    flags = [m for m in res["metrics"] if m["flagged"]]
-    ai_report = generate_ai_coaching_report(sport=sport, metrics=res["metrics"], total_flags=len(flags))
-    res["ai_report"] = ai_report
-
     # Universal Human Somatotype & AI Calibration v2.0
     from sports.anthropometrics import calculate_anthropometrics
     from sports.somatotype import calculate_universal_human_profile
@@ -210,9 +233,33 @@ async def auto_scan(
 
     vision = analyze_form_with_ai_vision(sport, res.get("detected_frames", []), anthro)
 
+    # ── AI Ground Truth Consensus Alignment ───────────────────────────────
+    metrics = res.get("metrics", [])
+    if vision.get("is_form_correct") is True:
+        for m in metrics:
+            m["flagged"] = False
+            m.pop("fault_name", None)
+            m.pop("injury_note", None)
+            m.pop("fix_tip", None)
+    elif vision.get("is_form_correct") is False and vision.get("primary_fault"):
+        fault_title = vision["primary_fault"]
+        for m in metrics:
+            if not any(x["flagged"] for x in metrics):
+                m["flagged"] = True
+                m["fault_name"] = fault_title
+                m["injury_note"] = vision.get("summary", "Form fault identified by AI Vision inspection.")
+                m["fix_tip"] = "Focus on the AI movement cues to correct posture alignment."
+                break
+
+    flags = [m for m in metrics if m["flagged"]]
+    ai_report = generate_ai_coaching_report(sport=sport, metrics=metrics, total_flags=len(flags))
+
+    res["metrics"] = metrics
+    res["total_flags"] = len(flags)
+    res["ai_report"] = ai_report
     res["anthropometrics"] = anthro
     res["ai_vision"] = vision
-    res["version"] = "v2.0-universal"
+    res["version"] = "v2.5-ground-truth-ai"
 
     # Store submission in history
     submission = Submission(

@@ -68,6 +68,9 @@ export interface Anthropometrics {
 
 export interface AIVisionAnalysis {
   ai_vision_active: boolean;
+  is_form_correct?: boolean;
+  form_verdict?: string;
+  primary_fault?: string | null;
   spine_alignment: string;
   bar_path_quality: string;
   vision_observations: string[];

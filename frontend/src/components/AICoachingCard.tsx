@@ -358,9 +358,22 @@ export default function AICoachingCard({ report, sport, metrics, anthropometrics
       {/* Multimodal AI Vision Form Inspection */}
       {aiVision && (
         <div className="space-y-3">
-          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-            <span>👁️</span> Multimodal AI Vision Inspection
-          </h4>
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span>👁️</span> Multimodal AI Vision Ground Truth Inspection
+            </h4>
+            {aiVision.form_verdict && (
+              <span
+                className={`text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider ${
+                  aiVision.is_form_correct !== false
+                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                    : "bg-red-500/20 text-red-300 border border-red-500/30"
+                }`}
+              >
+                {aiVision.form_verdict}
+              </span>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="glass-card p-4 border-purple-500/30 bg-purple-500/5">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-purple-400">
