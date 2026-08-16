@@ -316,28 +316,42 @@ export default function AICoachingCard({ report, sport, metrics, anthropometrics
         </div>
       </div>
 
-      {/* Anthropometrics & Human Adaptability Badge */}
+      {/* Universal Human Somatotype Profile v2.0 */}
       {anthropometrics && (
-        <div className="p-4 rounded-xl bg-gradient-to-r from-blue-950/40 to-purple-950/40 border border-blue-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-300 flex items-center justify-center text-lg font-bold border border-blue-500/30">
-              👤
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-white uppercase tracking-wider">
-                  Human Leverage Profile: {anthropometrics.lever_type}
-                </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono">
-                  Ratio {anthropometrics.torso_femur_ratio}
-                </span>
+        <div className="p-4 rounded-xl bg-gradient-to-r from-blue-950/40 via-purple-950/40 to-surface-900/60 border border-blue-500/30 space-y-2">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-300 flex items-center justify-center text-xl font-bold border border-blue-500/30 shadow-lg shadow-blue-500/10">
+                👤
               </div>
-              <p className="text-xs text-gray-400 mt-0.5">{anthropometrics.note}</p>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-extrabold text-white">
+                    {anthropometrics.somatotype || "Universal Body Profile"}
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 uppercase tracking-wider font-semibold">
+                    v2.0 Adaptive AI
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono">
+                    Lever Ratio: {anthropometrics.torso_femur_ratio}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-300 mt-1 font-medium">
+                  {anthropometrics.body_type_note || anthropometrics.note}
+                </p>
+              </div>
             </div>
+            <span className="text-[10px] px-3 py-1.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold uppercase tracking-wider whitespace-nowrap shadow-sm">
+              ✓ Adaptive Thresholds Applied
+            </span>
           </div>
-          <span className="text-[10px] px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold uppercase tracking-wider whitespace-nowrap">
-            ✓ Personalized Baseline Active
-          </span>
+
+          {anthropometrics.stance_recommendation && (
+            <div className="pt-2 border-t border-white/10 flex items-center gap-2 text-xs text-purple-200">
+              <span className="text-purple-400 font-bold">🦵 AI Stance Tip:</span>
+              <span>{anthropometrics.stance_recommendation}</span>
+            </div>
+          )}
         </div>
       )}
 

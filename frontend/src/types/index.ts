@@ -61,6 +61,9 @@ export interface Anthropometrics {
   arm_torso_ratio: number;
   lever_type: string;
   note: string;
+  somatotype?: string;
+  body_type_note?: string;
+  stance_recommendation?: string;
 }
 
 export interface AIVisionAnalysis {

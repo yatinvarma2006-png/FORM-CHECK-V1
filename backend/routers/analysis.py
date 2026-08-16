@@ -76,15 +76,18 @@ async def analyze(
     rules = _load_rules(db, sport)
     frame_map = _frames_by_role(req.frames)
 
-    # ── Anthropometric Normalization & Human Calibration ──────────────────
-    from sports.anthropometrics import calculate_anthropometrics, adapt_thresholds_for_human
+    # ── Universal Human Somatotype & AI Calibration v2.0 ──────────────────
+    from sports.anthropometrics import calculate_anthropometrics
+    from sports.somatotype import calculate_universal_human_profile, get_v2_universal_thresholds
     from sports.ai_vision import analyze_form_with_ai_vision
 
     ref_lms = list(frame_map.values())[0] if frame_map else []
     anthropometrics = calculate_anthropometrics(ref_lms) if ref_lms else {}
+    somatotype_profile = calculate_universal_human_profile(ref_lms) if ref_lms else {}
+    anthropometrics.update(somatotype_profile)
 
-    # Adapt thresholds dynamically for this human subject's body structure
-    human_thresholds = adapt_thresholds_for_human(sport, thresholds, anthropometrics)
+    # Adapt thresholds dynamically for this human subject's body structure (v2.0)
+    human_thresholds = get_v2_universal_thresholds(sport, thresholds, anthropometrics)
 
     if sport == "bowling":
         if "arm_horizontal" not in frame_map or "release" not in frame_map:
@@ -151,6 +154,7 @@ async def analyze(
         "ai_report": ai_report,
         "anthropometrics": anthropometrics,
         "ai_vision": ai_vision,
+        "version": "v2.0-universal",
     }
 
 
@@ -194,16 +198,21 @@ async def auto_scan(
     ai_report = generate_ai_coaching_report(sport=sport, metrics=res["metrics"], total_flags=len(flags))
     res["ai_report"] = ai_report
 
-    # Anthropometrics & AI Vision
+    # Universal Human Somatotype & AI Calibration v2.0
     from sports.anthropometrics import calculate_anthropometrics
+    from sports.somatotype import calculate_universal_human_profile
     from sports.ai_vision import analyze_form_with_ai_vision
 
     ref_lms = res["detected_frames"][0]["landmarks"] if res.get("detected_frames") else []
     anthro = calculate_anthropometrics(ref_lms) if ref_lms else {}
+    if ref_lms:
+        anthro.update(calculate_universal_human_profile(ref_lms))
+
     vision = analyze_form_with_ai_vision(sport, res.get("detected_frames", []), anthro)
 
     res["anthropometrics"] = anthro
     res["ai_vision"] = vision
+    res["version"] = "v2.0-universal"
 
     # Store submission in history
     submission = Submission(
