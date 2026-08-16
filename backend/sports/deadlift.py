@@ -73,12 +73,12 @@ def analyze_deadlift(
         angle_early = math.degrees(math.atan2(dy_early, max(0.001, dx_early)))
 
         # Ratio of early pull torso angle to setup torso angle
-        # Good form (chest & hips rise together): ratio ≈ 0.90 - 1.30
+        # Good form: chest & hips rise together or chest opens (ratio >= 0.65)
         # Hips shoot up early (torso flattens toward floor): ratio drops < 0.65
         ratio = angle_early / max(0.1, angle_setup)
 
-        lo, hi = thresholds.get("hip_shoulder_rise_ratio", (0.50, 1.60))
-        flagged = ratio < lo or ratio > hi
+        lo, hi = thresholds.get("hip_shoulder_rise_ratio", (0.65, 3.00))
+        flagged = ratio < lo
         metric = {
             "metric_name": "hip_shoulder_rise_ratio",
             "display_name": "Hip-Shoulder Rise Sync",
